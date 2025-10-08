@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精密空调动态密码计算器</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Microsoft YaHei', sans-serif; }
+        body { background: #1a5f7a; color: #333; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); width: 100%; max-width: 400px; padding: 25px; }
+        h1 { text-align: center; margin-bottom: 20px; color: #1a5f7a; font-size: 22px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; text-align: center; }
+        input:focus { border-color: #1a5f7a; outline: none; }
+        button { background: #1a5f7a; color: white; border: none; border-radius: 8px; padding: 12px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background: #159895; }
+        .result { margin-top: 20px; padding: 15px; background: #f0f8ff; border-radius: 8px; text-align: center; display: none; }
+        .result.active { display: block; }
+        .password { font-size: 32px; font-weight: bold; color: #1a5f7a; margin: 10px 0; }
+        .calculation { margin-top: 10px; text-align: left; background: white; padding: 10px; border-radius: 5px; font-size: 13px; }
+        .step { margin-bottom: 5px; padding-left: 8px; border-left: 2px solid #1a5f7a; }
+        .current-date { text-align: center; margin-bottom: 15px; color: #666; font-size: 14px; }
+        .footer { text-align: center; margin-top: 15px; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 精密空调动态密码计算器</h1>
+        <div class="current-date" id="currentDate"></div>
+        <div class="input-group">
+            <label for="monthDay">请输入月日（4位数字）：</label>
+            <input type="text" id="monthDay" placeholder="例如：0608" maxlength="4">
+        </div>
+        <button id="calculateBtn">计算动态密码</button>
+        <div class="result" id="result">
+            <h3>计算结果：</h3>
+            <div class="password" id="password"></div>
+            <div class="calculation" id="calculation"></div>
+        </div>
+        <div class="footer">基于月日四位数字计算 | ABCD计算法</div>
+    </div>
+
+    <script>
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        document.getElementById('currentDate').textContent = `今天是${month}月${day}日，示例：${month}${day}`;
+        
+        document.getElementById('calculateBtn').addEventListener('click', calculatePassword);
+        document.getElementById('monthDay').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') calculatePassword();
+        });
+        
+        function calculatePassword() {
+            const monthDay = document.getElementById('monthDay').value.trim();
+            if (monthDay.length !== 4 || isNaN(monthDay)) {
+                alert('请输入4位数字（如0608）');
+                return;
+            }
+            
+            const digits = monthDay.split('').map(Number);
+            const A = (digits[0] + digits[1] + digits[2] + digits[3]) % 10;
+            let B = digits[3] - digits[2] - digits[1] - digits[0];
+            B = Math.abs(B) % 10;
+            const nonZeroDigits = digits.filter(d => d !== 0);
+            let C = 1;
+            nonZeroDigits.forEach(d => C *= d);
+            C = C % 10;
+            const D = (A + B + C) % 10;
+            const password = `${A}${B}${C}${D}`;
+            
+            document.getElementById('password').textContent = password;
+            document.getElementById('calculation').innerHTML = `
+                <div class="step"><strong>计算过程：</strong></div>
+                <div class="step">A = (${digits[0]} + ${digits[1]} + ${digits[2]} + ${digits[3]}) % 10 = ${A}</div>
+                <div class="step">B = |${digits[3]} - ${digits[2]} - ${digits[1]} - ${digits[0]}| % 10 = ${B}</div>
+                <div class="step">C = (${nonZeroDigits.join(' × ')}) % 10 = ${C}</div>
+                <div class="step">D = (${A} + ${B} + ${C}) % 10 = ${D}</div>
+            `;
+            document.getElementById('result').classList.add('active');
+        }
+    </script>
+</body>
+</html>
