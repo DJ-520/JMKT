@@ -42,35 +42,55 @@
     </div>
 
     <script>
+        // 显示当前日期
         const now = new Date();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
         document.getElementById('currentDate').textContent = `今天是${month}月${day}日，示例：${month}${day}`;
         
+        // 计算按钮点击事件
         document.getElementById('calculateBtn').addEventListener('click', calculatePassword);
+        
+        // 输入框回车事件
         document.getElementById('monthDay').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') calculatePassword();
         });
         
         function calculatePassword() {
             const monthDay = document.getElementById('monthDay').value.trim();
+            
+            // 验证输入
             if (monthDay.length !== 4 || isNaN(monthDay)) {
                 alert('请输入4位数字（如0608）');
                 return;
             }
             
+            // 提取月日数字
             const digits = monthDay.split('').map(Number);
+            
+            // 计算A（加法）
             const A = (digits[0] + digits[1] + digits[2] + digits[3]) % 10;
+            
+            // 计算B（减法）
             let B = digits[3] - digits[2] - digits[1] - digits[0];
             B = Math.abs(B) % 10;
+            
+            // 计算C（乘法）
             const nonZeroDigits = digits.filter(d => d !== 0);
             let C = 1;
             nonZeroDigits.forEach(d => C *= d);
             C = C % 10;
+            
+            // 计算D（前三位相加取个位）
             const D = (A + B + C) % 10;
+            
+            // 生成密码
             const password = `${A}${B}${C}${D}`;
             
+            // 显示结果
             document.getElementById('password').textContent = password;
+            
+            // 显示计算过程
             document.getElementById('calculation').innerHTML = `
                 <div class="step"><strong>计算过程：</strong></div>
                 <div class="step">A = (${digits[0]} + ${digits[1]} + ${digits[2]} + ${digits[3]}) % 10 = ${A}</div>
@@ -78,6 +98,7 @@
                 <div class="step">C = (${nonZeroDigits.join(' × ')}) % 10 = ${C}</div>
                 <div class="step">D = (${A} + ${B} + ${C}) % 10 = ${D}</div>
             `;
+            
             document.getElementById('result').classList.add('active');
         }
     </script>
