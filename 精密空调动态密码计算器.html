@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态密码计算器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 28px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #34495e;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(to right, #3498db, #2c3e50);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .result.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        .password {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: 5px;
+            margin: 15px 0;
+        }
+        
+        .calculation {
+            margin-top: 15px;
+            text-align: left;
+            background-color: #eef5ff;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .step {
+            margin-bottom: 8px;
+            padding-left: 10px;
+            border-left: 3px solid #3498db;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .current-date {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>动态密码计算器</h1>
+        
+        <div class="current-date" id="currentDate"></div>
+        
+        <div class="input-group">
+            <label for="monthDay">请输入月日（4位数字，如0608）：</label>
+            <input type="text" id="monthDay" placeholder="例如：0608" maxlength="4">
+        </div>
+        
+        <button id="calculateBtn">计算动态密码</button>
+        
+        <div class="result" id="result">
+            <h3>计算结果：</h3>
+            <div class="password" id="password"></div>
+            <div class="calculation" id="calculation"></div>
+        </div>
+        
+        <div class="footer">
+            基于月日四位数字计算动态密码 | 设计：ABCD计算法
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 显示当前日期
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            document.getElementById('currentDate').textContent = `今天是${month}月${day}日，示例输入：${month}${day}`;
+            
+            // 计算按钮点击事件
+            document.getElementById('calculateBtn').addEventListener('click', function() {
+                calculatePassword();
+            });
+            
+            // 输入框回车事件
+            document.getElementById('monthDay').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculatePassword();
+                }
+            });
+            
+            function calculatePassword() {
+                const monthDay = document.getElementById('monthDay').value.trim();
+                
+                // 验证输入
+                if (monthDay.length !== 4 || isNaN(monthDay)) {
+                    alert('请输入4位数字（如0608）');
+                    return;
+                }
+                
+                // 提取月日数字
+                const digits = monthDay.split('').map(Number);
+                
+                // 计算A（加法）
+                const A = (digits[0] + digits[1] + digits[2] + digits[3]) % 10;
+                
+                // 计算B（减法）
+                let B = digits[3] - digits[2] - digits[1] - digits[0];
+                B = Math.abs(B) % 10; // 取绝对值后取个位数
+                
+                // 计算C（乘法）
+                const nonZeroDigits = digits.filter(d => d !== 0);
+                let C = 1;
+                nonZeroDigits.forEach(d => C *= d);
+                C = C % 10;
+                
+                // 计算D（前三位相加取个位）
+                const D = (A + B + C) % 10;
+                
+                // 生成密码
+                const password = `${A}${B}${C}${D}`;
+                
+                // 显示结果
+                document.getElementById('password').textContent = password;
+                
+                // 显示计算过程
+                document.getElementById('calculation').innerHTML = `
+                    <div class="step"><strong>计算过程：</strong></div>
+                    <div class="step">A = (${digits[0]} + ${digits[1]} + ${digits[2]} + ${digits[3]}) % 10 = ${A}</div>
+                    <div class="step">B = |${digits[3]} - ${digits[2]} - ${digits[1]} - ${digits[0]}| % 10 = ${B}</div>
+                    <div class="step">C = (${nonZeroDigits.join(' × ')}) % 10 = ${C}</div>
+                    <div class="step">D = (${A} + ${B} + ${C}) % 10 = ${D}</div>
+                `;
+                
+                document.getElementById('result').classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
